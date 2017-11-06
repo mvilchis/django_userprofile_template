@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-#Clase base para usuario
+#System work with a admins of a organization and normaluser
+
+#Rewrite manager of the users
 class MyUserManager(BaseUserManager):
 
      def create_user(self, username, password=None):
@@ -18,23 +20,16 @@ class MyUserManager(BaseUserManager):
          user.save(using=self._db)
          return user
 
-class ManagerUser(models.Model):
-     user = models.ForeignKey('NormalUser',  null=True, blank = True)
-     org_name = models.CharField(verbose_name = 'Name of the org', max_length = 50)
+# Temporal model, it must have their own app
+class Org(models.Model):
+    username = models.CharField(verbose_name = 'Nombre de la organizacion', max_length = 50, unique = True)
 
-     class Meta:
-         verbose_name        = 'Organization'
-         verbose_name_plural = 'Organizations'
+#A normal user has email, username
+class AbstractSystemUser(AbstractBaseUser):
 
-     def __str__(self):
-         return "%s(%s)" % (self.org_name ,self.user)
-
-
-class NormalUser(AbstractBaseUser):
-
-     email = models.EmailField(verbose_name='email', max_length=255, unique=True)
+     email = models.EmailField(verbose_name='email', max_length=255, unique=True, blank=True, null=True)
      username = models.CharField(verbose_name = 'Nombre de usuario', max_length = 50, unique = True)
-     manager = models.ForeignKey(ManagerUser, verbose_name = 'Manager', null=True, blank = True)
+     org = models.ForeignKey(Org, verbose_name = 'Manager', null=True, blank = True)
      created = models.DateTimeField(verbose_name = 'Creado', editable = False, auto_now_add = True)
      modified = models.DateTimeField(verbose_name = 'Actualizado', editable = False, auto_now = True)
      is_active = models.BooleanField(verbose_name = 'Activo',default=True)
@@ -43,9 +38,13 @@ class NormalUser(AbstractBaseUser):
      objects = MyUserManager()
      USERNAME_FIELD = 'username'
      REQUIRED_FIELDS = []
+
+
      class Meta:
          verbose_name        = 'User'
          verbose_name_plural = 'Users'
+         abstract            = True
+
 
      @property
      def is_superuser(self):
@@ -55,3 +54,26 @@ class NormalUser(AbstractBaseUser):
      @property
      def is_staff(self):
          return self.is_admin
+
+
+class NormalUser(AbstractSystemUser):
+    pass
+
+
+#Manager of the organization, has reference
+class ManagerUser(AbstractSystemUser):
+
+     is_active = models.BooleanField(verbose_name = 'Activo',default=True)
+     is_admin = models.BooleanField(verbose_name = 'Administrador', default=True)
+
+
+     class Meta:
+         verbose_name        = 'Manager'
+         verbose_name_plural = 'Managers'
+
+
+     def __str__(self):
+         return "%s(%s)" % (self.org_name ,self.user)
+
+
+

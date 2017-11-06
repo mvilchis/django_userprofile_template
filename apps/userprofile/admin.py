@@ -8,7 +8,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from .models import NormalUser
 from .models import ManagerUser
 
-
+################ Custom admin form ##################
 class UserCreationForm(forms.ModelForm):
      password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
      password2 = forms.CharField(label='Repetir password', widget=forms.PasswordInput)
@@ -16,7 +16,7 @@ class UserCreationForm(forms.ModelForm):
          model = NormalUser
          fields = ('email',
                      'username',
-                     'manager',
+                     'org',
                      'is_active',
                      'is_admin',
 
@@ -34,7 +34,7 @@ class UserChangeForm(forms.ModelForm):
         model = NormalUser
         fields = ('email',
                      'username',
-                     'manager',
+                     'org',
                      'is_active',
                      'is_admin',
                  )
@@ -48,14 +48,14 @@ class MyUserAdmin(UserAdmin):
     list_filter = ('username','email')
     ordering = ('username',)
     fieldsets = (
-         (None, {'fields': ('email', 'password','username','manager')}),
+         (None, {'fields': ('email', 'password','username','org')}),
          ('Permisos', {'fields': ('is_admin', 'is_active',)}),
      )
 
     add_fieldsets = ( (None, {'classes': ('wide',),
                                'fields': ('email',
                                           'username',
-                                          'manager',
+                                          'org',
                                           'password1',
                                           'password2',
                                           'is_active',
